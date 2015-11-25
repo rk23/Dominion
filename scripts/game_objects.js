@@ -1,6 +1,6 @@
 //I understand all of these should have been done with 
 //getter and setter methods to provide private information,
-//but I realized after I finished. Because it's just a game, 
+//but I realized after I finished the basic logic. Because it's just a game, 
 //I'm not going to refactor it. 
 
 var VictoryCard = function (name, value, cost) {
@@ -84,8 +84,8 @@ var Gameboard = function () {
 }
 var Game = function () {
     //Key:
-    //Player One: Turn = 1
-    //Player Two: Turn = 2
+    //Turn :    1 = Player One
+    //          2 = Player Two
     //Stage:    0 = New game
     //          1 = Action
     //          2 = Buy
