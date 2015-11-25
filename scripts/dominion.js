@@ -160,8 +160,8 @@ var PlayAction = function () {
     player.action = 1;
     player.buy = 1;
     player.treasury = 0;
-    player.deckDraw = 0;
     player.purseBonus = 0;
+    player.throneRoomDouble = 0;
 
     //Discard any cards left in hand from previous turn. 
     //Because of pop function, have to store hand length 
@@ -219,6 +219,7 @@ var PlayAction = function () {
 */
 var PlayBuy = function () {
     var player = getPlayer();
+    player.deckDraw = 0;
     game.stage = 2;
     //Live update of current hand value vs storing in a new variable
     player.treasury = player.getHandValue();
@@ -296,6 +297,13 @@ var CardHandler = function (e) {
 
                         if (card.toLowerCase() == "throneroom"){
                             player.throneRoomDouble += cardObject[0].throneRoom;
+                        }
+                        
+                        if (card.toLowerCase() == "councilroom"){
+                            game.turn++;
+                            var playerToIncrement = getPlayer();
+                            game.turn--;
+                            playerToIncrement.deckDraw++;
                         }
                         
                         
