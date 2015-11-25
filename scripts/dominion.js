@@ -28,6 +28,7 @@ var initGameboard = function () {
         gameboard.kingdomCards.councilRoom.push(KingdomCard('Councilroom', 5, 4, 0, 1, 0))
         gameboard.kingdomCards.village.push(KingdomCard('Village', 3, 1, 2, 0, 0))
         gameboard.kingdomCards.woodcutter.push(KingdomCard('Woodcutter', 3, 0, 0, 1, 2))
+        gameboard.kingdomCards.throneRoom.push(KingdomCard('Throneroom', 4, 0, 1, 0, 0, 1));
 
         //Currently unrepresented in html, or 8 card game. Uncomment to make 10 card game.         
         //gameboard.kingdomCards.market.push(KingdomCard('Market', 5, 1, 1, 1, 1))
@@ -160,6 +161,7 @@ var PlayAction = function () {
     player.buy = 1;
     player.treasury = 0;
     player.deckDraw = 0;
+    player.purseBonus = 0;
 
     //Discard any cards left in hand from previous turn. 
     //Because of pop function, have to store hand length 
@@ -278,12 +280,27 @@ var CardHandler = function (e) {
                         && player.hand[i]['type'] === "Kingdom") {
                     if (player.action > 0) {
                         var cardObject = player.hand.splice(i, 1);
+                        
+                        if (player.throneRoomDouble == 1){
+                            player.action += cardObject[0].actionBonus * 2;
+                            player.deckDraw += cardObject[0].deckDraw * 2;
+                            player.buy += cardObject[0].buyBonus * 2;
+                            player.purseBonus += cardObject[0].purseBonus * 2;
+                            player.throneRoomDouble--;
+                        } else {
+                            player.action += cardObject[0].actionBonus;
+                            player.deckDraw += cardObject[0].deckDraw;
+                            player.buy += cardObject[0].buyBonus;
+                            player.purseBonus += cardObject[0].purseBonus;                            
+                        }
 
+                        if (card.toLowerCase() == "throneroom"){
+                            player.throneRoomDouble += cardObject[0].throneRoom;
+                        }
+                        
+                        
                         player.action--;
-                        player.action += cardObject[0].actionBonus;
-                        player.deckDraw += cardObject[0].deckDraw;
-                        player.buy += cardObject[0].buyBonus;
-                        player.purseBonus += cardObject[0].purseBonus;
+
 
                         e.currentTarget.setAttribute('src', 'styles/images/CardBack.jpg');
                         e.currentTarget.setAttribute('id', '')
