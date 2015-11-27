@@ -19,7 +19,7 @@ var TreasureCard = function (name, value, cost) {
         type: 'Treasure'
     }
 }
-var KingdomCard = function (name, cost, draw, action, buy, bonus, double) {
+var KingdomCard = function (name, cost, draw, action, buy, bonus, double, workshop) {
     return {
         name: name,
         cost: cost,
@@ -28,6 +28,7 @@ var KingdomCard = function (name, cost, draw, action, buy, bonus, double) {
         buyBonus: buy,
         purseBonus: bonus,
         throneRoom: double,
+        workshop: workshop,
         type: 'Kingdom'
     }
 }
@@ -44,6 +45,7 @@ var Player = function (name) {
         purseBonus: 0,
         victoryPoints: 3,
         throneRoomDouble: 0,
+        workshopBonus: 0,
         getHandValue: function () {
             var count = 0;
             this.hand.forEach(function (card) {
@@ -77,8 +79,7 @@ var Gameboard = function () {
             woodcutter: [],
             laboratory: [],
             councilRoom: [],
-            moat: [],
-            throneRoom: [],
+            throneRoom: []
         }
     }
 }

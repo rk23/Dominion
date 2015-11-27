@@ -19,20 +19,20 @@ var initGameboard = function () {
 
         //Game rules: For two players, instantiate 7 kingdom cards. Technically 8,
         //but didn't want to make another for loop.
-        //Key: KingdomCard(name, cost, draw, action, buy, treasuryBonus)
-        gameboard.kingdomCards.cellar.push(KingdomCard('Cellar', 2, 1, 1, 0, 0))
-        gameboard.kingdomCards.festival.push(KingdomCard('Festival', 5, 0, 2, 1, 2))
-        gameboard.kingdomCards.laboratory.push(KingdomCard('Laboratory', 5, 2, 1, 0, 0))
-        gameboard.kingdomCards.workshop.push(KingdomCard('Workshop', 3, 0, 0, 0, 4))
-        gameboard.kingdomCards.smithy.push(KingdomCard('Smithy', 4, 3, 0, 0, 0))
-        gameboard.kingdomCards.councilRoom.push(KingdomCard('Councilroom', 5, 4, 0, 1, 0))
-        gameboard.kingdomCards.village.push(KingdomCard('Village', 3, 1, 2, 0, 0))
-        gameboard.kingdomCards.woodcutter.push(KingdomCard('Woodcutter', 3, 0, 0, 1, 2))
-        gameboard.kingdomCards.throneRoom.push(KingdomCard('Throneroom', 4, 0, 1, 0, 0, 1));
+        //Key: KingdomCard(name, cost, draw, action, buy, treasuryBonus, workshopBonus)
+        gameboard.kingdomCards.cellar.push(KingdomCard('Cellar', 2, 1, 1, 0, 0, 0, 0))
+        gameboard.kingdomCards.festival.push(KingdomCard('Festival', 5, 0, 2, 1, 2, 0, 0))
+        gameboard.kingdomCards.laboratory.push(KingdomCard('Laboratory', 5, 2, 1, 0, 0, 0, 0))
+        gameboard.kingdomCards.workshop.push(KingdomCard('Workshop', 3, 0, 0, 0, 4, 0, 0))
+        gameboard.kingdomCards.smithy.push(KingdomCard('Smithy', 4, 3, 0, 0, 0, 0, 0))
+        gameboard.kingdomCards.councilRoom.push(KingdomCard('Councilroom', 5, 4, 0, 1, 0, 0, 0))
+        gameboard.kingdomCards.village.push(KingdomCard('Village', 3, 1, 2, 0, 0, 0, 0))
+        gameboard.kingdomCards.woodcutter.push(KingdomCard('Woodcutter', 3, 0, 0, 1, 2, 0, 0))
+        gameboard.kingdomCards.throneRoom.push(KingdomCard('Throneroom', 4, 0, 1, 0, 0, 1, 0));
 
         //Currently unrepresented in html, or 8 card game. Uncomment to make 10 card game.         
-        //gameboard.kingdomCards.market.push(KingdomCard('Market', 5, 1, 1, 1, 1))
-        //gameboard.kingdomCards.moat.push(KingdomCard('Moat', 2, 2, 0, 0, 0))
+        gameboard.kingdomCards.market.push(KingdomCard('Market', 5, 1, 1, 1, 1, 0, 0))
+        gameboard.kingdomCards.workshop.push(KingdomCard('Workshop', 3, 0, 0, 0, 0, 0, 1))
 
         gameboard.victoryPoints.estate.push(VictoryCard('Estate', 1, 2))
         gameboard.victoryPoints.duchy.push(VictoryCard('Duchy', 3, 5))
@@ -282,17 +282,22 @@ var CardHandler = function (e) {
                     if (player.action > 0) {
                         var cardObject = player.hand.splice(i, 1);
                         
+                        console.log("Before " + player.workshopBonus)
+                        
                         if (player.throneRoomDouble == 1){
                             player.action += cardObject[0].actionBonus * 2;
                             player.deckDraw += cardObject[0].deckDraw * 2;
                             player.buy += cardObject[0].buyBonus * 2;
                             player.purseBonus += cardObject[0].purseBonus * 2;
+                            console.log(cardObject[0].workshop)
+                            player.workshopBonus += cardObject[0].workshop * 2;
                             player.throneRoomDouble--;
                         } else {
                             player.action += cardObject[0].actionBonus;
                             player.deckDraw += cardObject[0].deckDraw;
                             player.buy += cardObject[0].buyBonus;
-                            player.purseBonus += cardObject[0].purseBonus;                            
+                            player.purseBonus += cardObject[0].purseBonus;   
+                            player.workshopBonus += cardObject[0].workshop;
                         }
 
                         if (card.toLowerCase() == "throneroom"){
@@ -306,9 +311,9 @@ var CardHandler = function (e) {
                             playerToIncrement.deckDraw++;
                         }
                         
-                        
                         player.action--;
 
+                        console.log("After " + player.workshopBonus)
 
                         e.currentTarget.setAttribute('src', 'styles/images/CardBack.jpg');
                         e.currentTarget.setAttribute('id', '')
@@ -341,9 +346,11 @@ var CardHandler = function (e) {
                         if(cardType === "victoryPoints") {
                             if (key == "province"){
                                 if (gameboard.victoryPoints.province.length > 1){
-                                    $('#provincePanel').empty().append(gameboard.victoryPoints.province.length + " Provinces left")
+                                    $('#provincePanel').empty()
+                                        .append(gameboard.victoryPoints.province.length + " Provinces left")
                                 } else {
-                                    $('#provincePanel').empty().append(gameboard.victoryPoints.province.length + " Province left")
+                                    $('#provincePanel').empty()
+                                        .append(gameboard.victoryPoints.province.length + " Province left")
                                 }                            
                             }
                             player.victoryPoints += cardObject.value;
@@ -358,9 +365,18 @@ var CardHandler = function (e) {
                         $('#treasury').empty().append('Treasury value: ' + player.treasury);
                         $('#buyStatus').empty().html('+' + card.capitalize() + " bought");
                         
+                        if (player.buy == 0 && player.workshopBonus > 0) {
+                            player.buy++;
+                            player.treasury = 0; 
+                            player.treasury = 4;
+                            $('#buyCredits').empty().append('Buy credits: ' + player.buy);
+                            $('#treasury').empty().append('Treasury value: ' + player.treasury); 
+                            player.workshopBonus--;
+                            $('#buyStatus').empty().html('+' + card.capitalize() + " bought<p>Play workshop bonus now</p>");
+                        }
+                        
                         break;
                     }
-                    //$('#buyStatus').empty().html("You don't have enough money");
                     showPopup("You don't have enough money. Move along.")
                 }
             }
