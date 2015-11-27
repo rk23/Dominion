@@ -104,6 +104,9 @@ var reloadDeck = function (player) {
     for (var i = 0; i < discardLength; i++) {
         player.deck.push(player.discard.pop());
     }
+    
+    //Update discard deck amount
+    $('#discardCount').empty().append("Discard: " + player.discard.length);
     shuffle(player.deck);
 }
 /*
@@ -141,7 +144,9 @@ var getPlayer = function () {
 var getHand = function (deck) {
     var hand = []
     for (var i = 0; i < 5; i++) {
-        hand.push(deck.pop())
+        if (deck.length > 0) {
+            hand.push(deck.pop())
+        }
     }
     return hand;
 }
@@ -222,6 +227,8 @@ var PlayBuy = function () {
     player.deckDraw = 0;
     game.stage = 2;
     //Live update of current hand value vs storing in a new variable
+    
+    //TODO: Undefined hand
     player.treasury = player.getHandValue();
     
     //Hide action sequence DOM nodes and show buy sequence
@@ -281,15 +288,12 @@ var CardHandler = function (e) {
                         && player.hand[i]['type'] === "Kingdom") {
                     if (player.action > 0) {
                         var cardObject = player.hand.splice(i, 1);
-                        
-                        console.log("Before " + player.workshopBonus)
-                        
+                                                
                         if (player.throneRoomDouble == 1){
                             player.action += cardObject[0].actionBonus * 2;
                             player.deckDraw += cardObject[0].deckDraw * 2;
                             player.buy += cardObject[0].buyBonus * 2;
                             player.purseBonus += cardObject[0].purseBonus * 2;
-                            console.log(cardObject[0].workshop)
                             player.workshopBonus += cardObject[0].workshop * 2;
                             player.throneRoomDouble--;
                         } else {
@@ -312,8 +316,6 @@ var CardHandler = function (e) {
                         }
                         
                         player.action--;
-
-                        console.log("After " + player.workshopBonus)
 
                         e.currentTarget.setAttribute('src', 'styles/images/CardBack.jpg');
                         e.currentTarget.setAttribute('id', '')
@@ -399,11 +401,23 @@ var CardHandler = function (e) {
 var checkWin = function (player) {
     if (gameboard.victoryPoints.province.length === 0) {
         
+        var winner;
+        var loser;
+        
+        if (game.turn % 2 == 1) {
+            winner = playerOne;
+            loser = playerTwo;
+        } else if (game.turn % 2 == 0) {
+            loser = playerTwo;
+            winner = playerOne;
+        } 
+        
         $('.action').hide()
         $('.buy').hide();
         $('.content').hide();
         $('.win').show();
-        $('#winner').html(player.name + " wins with " + player.victoryPoints + " victory points" )
+        $('#winner').html(winner.name + " wins with " + winner.victoryPoints + " victory points" 
+                          + "\n" + loser.name + " loses with " + loser.victoryPoints + " victory points");
         
     } 
 }
