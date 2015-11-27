@@ -16,21 +16,19 @@ var initGameboard = function () {
         //Game rules: For two players, each player starts out with 7 coppers
         playerOne.deck.push(TreasureCard('Copper', 1, 0))
         playerTwo.deck.push(TreasureCard('Copper', 1, 0))
-
+    }
+    for (var i = 0; i < 8; i++) {
         //Game rules: For two players, instantiate 7 kingdom cards. Technically 8,
         //but didn't want to make another for loop.
         //Key: KingdomCard(name, cost, draw, action, buy, treasuryBonus, workshopBonus)
         gameboard.kingdomCards.cellar.push(KingdomCard('Cellar', 2, 1, 1, 0, 0, 0, 0))
         gameboard.kingdomCards.festival.push(KingdomCard('Festival', 5, 0, 2, 1, 2, 0, 0))
         gameboard.kingdomCards.laboratory.push(KingdomCard('Laboratory', 5, 2, 1, 0, 0, 0, 0))
-        gameboard.kingdomCards.workshop.push(KingdomCard('Workshop', 3, 0, 0, 0, 4, 0, 0))
         gameboard.kingdomCards.smithy.push(KingdomCard('Smithy', 4, 3, 0, 0, 0, 0, 0))
         gameboard.kingdomCards.councilRoom.push(KingdomCard('Councilroom', 5, 4, 0, 1, 0, 0, 0))
         gameboard.kingdomCards.village.push(KingdomCard('Village', 3, 1, 2, 0, 0, 0, 0))
         gameboard.kingdomCards.woodcutter.push(KingdomCard('Woodcutter', 3, 0, 0, 1, 2, 0, 0))
         gameboard.kingdomCards.throneRoom.push(KingdomCard('Throneroom', 4, 0, 1, 0, 0, 1, 0));
-
-        //Currently unrepresented in html, or 8 card game. Uncomment to make 10 card game.         
         gameboard.kingdomCards.market.push(KingdomCard('Market', 5, 1, 1, 1, 1, 0, 0))
         gameboard.kingdomCards.workshop.push(KingdomCard('Workshop', 3, 0, 0, 0, 0, 0, 1))
 
@@ -167,6 +165,7 @@ var PlayAction = function () {
     player.treasury = 0;
     player.purseBonus = 0;
     player.throneRoomDouble = 0;
+    player.workshopBonus = 0;
 
     //Discard any cards left in hand from previous turn. 
     //Because of pop function, have to store hand length 
@@ -241,6 +240,12 @@ var PlayBuy = function () {
         $('#provincePanel').empty().append(gameboard.victoryPoints.province.length + " Provinces left")
     } else {
         $('#provincePanel').empty().append(gameboard.victoryPoints.province.length + " Province left")
+    }
+    
+    if (player.workshopBonus > 0){
+        $('#buyCredits').empty().append('Buy credits: Bonus');
+        $('#treasury').empty().append('Treasury value: 4');
+        $('#buyStatus').empty().html("Play workshop bonus now");        
     }
 }
 /*
@@ -335,11 +340,37 @@ var CardHandler = function (e) {
     } 
     //If buy stage and player has buys left
     else if (stage == 2 && player.buy > 0) {
-        $('#treasury').empty().append('Treasury value: ' + player.treasury);
+        
+        if (player.workshopBonus > 0){
+            $('#treasury').empty().append('Treasury value: 4');
+            $('#buyStatus').empty().html("Play workshop bonus now");  
+        } else {
+            $('#treasury').empty().append('Treasury value: ' + player.treasury);
+        }
 
         for (cardType in gameboard) {
             for (key in gameboard[cardType]) {
                 if (card === key && gameboard[cardType][key].length > 0) {
+                    //Handle workshop bonus first
+                    if (player.workshopBonus > 0) {
+                        if (gameboard[cardType][key][0].cost < 5){
+                            var cardObject = gameboard[cardType][key].pop();
+
+                            player.discard.push(cardObject);
+                            player.workshopBonus--;
+
+                            $('#buyStatus').empty().html('+' + card.capitalize() + " bought");
+
+                            //If no more workshop bonuses, reset to reflect player status
+                            if(player.workshopBonus == 0) {
+                                $('#buyCredits').empty().append('Buy credits: ' + player.buy);
+                                $('#treasury').empty().append('Treasury value: ' + player.treasury);                            
+                            }
+                            return;
+                        }
+                        showPopup("You don't have enough money. Choose another card.")
+                        return;
+                    }
                     if (gameboard[cardType][key][0].cost <= player.treasury) {
                         var cardObject = gameboard[cardType][key].pop();
 
@@ -367,16 +398,7 @@ var CardHandler = function (e) {
                         $('#treasury').empty().append('Treasury value: ' + player.treasury);
                         $('#buyStatus').empty().html('+' + card.capitalize() + " bought");
                         
-                        if (player.buy == 0 && player.workshopBonus > 0) {
-                            player.buy++;
-                            player.treasury = 0; 
-                            player.treasury = 4;
-                            $('#buyCredits').empty().append('Buy credits: ' + player.buy);
-                            $('#treasury').empty().append('Treasury value: ' + player.treasury); 
-                            player.workshopBonus--;
-                            $('#buyStatus').empty().html('+' + card.capitalize() + " bought<p>Play workshop bonus now</p>");
-                        }
-                        
+                        //Break so we can still check win
                         break;
                     }
                     showPopup("You don't have enough money. Move along.")
@@ -391,33 +413,41 @@ var CardHandler = function (e) {
     }
     
     //Check win after each card click event
-    checkWin(player);
+    checkWin();
 }
 
 /*
 *Check the win based on how many province cards are left.
 *@return {Object} player
 */
-var checkWin = function (player) {
+var checkWin = function () {
     if (gameboard.victoryPoints.province.length === 0) {
         
         var winner;
         var loser;
+        var tie;      
         
-        if (game.turn % 2 == 1) {
+        if (playerOne.victoryPoints == playerTwo.victoryPoints) {
+            tie = true;
+        } else if(playerOne.victoryPoints > playerTwo.victoryPoints){
             winner = playerOne;
             loser = playerTwo;
-        } else if (game.turn % 2 == 0) {
-            loser = playerTwo;
-            winner = playerOne;
-        } 
+        } else {
+            winner = playerTwo;
+            loser = playerOne;
+        }
         
-        $('.action').hide()
+        $('.action').hide();
         $('.buy').hide();
         $('.content').hide();
         $('.win').show();
-        $('#winner').html(winner.name + " wins with " + winner.victoryPoints + " victory points" 
-                          + "\n" + loser.name + " loses with " + loser.victoryPoints + " victory points");
         
+        if (tie){
+            $('#winner').html("With " + p1.victoryPoints + " victory points, you both tied! Now try to coexist peacefully.");
+        } else {
+            $('#winner').html(winner.name + " is victorious with " + winner.victoryPoints + " victory points!" 
+                              + "<br><p>" + loser.name + " gets beheaded because he/she got a measly " 
+                              + loser.victoryPoints + " victory points</p>");            
+        }
     } 
 }
