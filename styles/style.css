@@ -42,10 +42,11 @@ ul {
 
 .centerPanel {
     margin-top: 4%;
+    margin-bottom: 4%;
 }
 
 .sidePanel {
-    margin-top: 1%;
+    margin-top: -2%;
 }
 
 .card {
@@ -81,7 +82,7 @@ ul {
 }
 
 .sidePanelCount {
-    margin-top: -30px;
+    margin-top: 5px;
     font-size: 20px;
     font-variant: small-caps;
 }

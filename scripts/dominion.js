@@ -195,6 +195,7 @@ var PlayAction = function () {
     $('#actionStatus').empty();
     $('#actionCredits').append('Action credits: ' + player.action);
     $('#discardCount').append("Discard: " + player.discard.length);
+    $('#deckDraw').empty().append("Draw: " + player.deckDraw);
     $('.panelTitle').html(player.name);
 
     //Get the player's hand from his/her deck. Takes the card out of the deck
@@ -285,6 +286,7 @@ var CardHandler = function (e) {
             
             $('.hand').append('<img class="card" id="' + deckCard.name + '" src="styles/images/' + deckCard.name + '.jpg">')            
             $('#deckCount').empty().append("Deck: " + player.deck.length);
+            $('#deckDraw').empty().append("Draw: " + player.deckDraw);
         } 
         //If card clicked wasn't a deck card, but an action is available
         else if (player.action > 0) {
@@ -326,6 +328,7 @@ var CardHandler = function (e) {
                         e.currentTarget.setAttribute('id', '')
                         
                         $('#actionCredits').empty().append('Action credits: ' + player.action);
+                        $('#deckDraw').empty().append("Draw: " + player.deckDraw);
 
                         $('#actionStatus').empty().html(cardObject[0].name + " played!");
                         player.discard.push(cardObject[0]);
